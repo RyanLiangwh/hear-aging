@@ -117,8 +117,9 @@
   <div class="sub">处理脚本跑出的 ground truth，按年龄从左到右逐级加重。戴耳机依次听。</div>
 
   <div class="card">
-    <h3>🎧 有声书语音（《夏日午后》爷孙对话）</h3>
+    <h3>🎧 有声书语音<span class="tag" style="background:#14331a;color:#9fe0b0">真人朗读 · 公有领域</span></h3>
     <div class="ladder" id="speechLadder"></div>
+    <div class="note">真人嗓音(非机器合成),取自 <a href="https://archive.org/details/art_of_war_chinese_1506_librivox" target="_blank">LibriVox《孫子兵法》中文朗读</a>(<a href="https://creativecommons.org/publicdomain/mark/1.0/" target="_blank">公有领域</a>)。</div>
     <h3 style="margin-top:18px">🎵 音乐<span class="tag" style="background:#14331a;color:#9fe0b0">CC-BY · 全频段</span></h3>
     <div class="ladder" id="musicLadder"></div>
     <div class="note">音乐选用全频段曲目，让高频泛音的流失听得清楚。曲目：<a href="https://archive.org/details/nullbomb" target="_blank">Nullbomb — “groove”</a>（<a href="https://creativecommons.org/licenses/by/2.5/" target="_blank">CC-BY 2.5</a>，署名即可自由使用）。要换成你自己合法拥有的曲子：放进 <span class="kbd">hearing-demo/</span> 改名 <span class="kbd">song_raw.mp3</span>，重跑 <span class="kbd">build_web_assets.py</span> 即可无缝替换。</div>
@@ -142,7 +143,7 @@
     修复侧：<b>EQ补偿</b>（按听力图反向增益，但会同时放大噪声）→ <b>WDRC</b>（宽动态压缩，抬升弱辅音）→ <b>降噪</b>（定向麦/NR 压低环境声）。
   </div>
 
-  <div class="foot">hearing-demo · 老年性聋听感 & 修复模拟 · 仅作共情/科普，非医疗诊断工具<br>语音：自录有声书旁白　音乐：<a href="https://archive.org/details/nullbomb" target="_blank">Nullbomb “groove”</a>（<a href="https://creativecommons.org/licenses/by/2.5/" target="_blank">CC-BY 2.5</a>）</div>
+  <div class="foot">hearing-demo · 老年性聋听感 & 修复模拟 · 仅作共情/科普，非医疗诊断工具<br>语音：<a href="https://archive.org/details/art_of_war_chinese_1506_librivox" target="_blank">LibriVox《孫子兵法》</a>（公有领域，真人朗读）　音乐：<a href="https://archive.org/details/nullbomb" target="_blank">Nullbomb “groove”</a>（<a href="https://creativecommons.org/licenses/by/2.5/" target="_blank">CC-BY 2.5</a>）</div>
 </div>
 
 <script>
