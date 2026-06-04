@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>听见衰老 · 老年性聋听感 & 修复模拟器</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --line:#2b3340;
+    --txt:#e6edf3; --dim:#9aa7b4; --accent:#4ea1ff; --warn:#ffb454; --good:#3fb950; --bad:#ff6b6b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;line-height:1.6}
+  .wrap{max-width:900px;margin:0 auto;padding:28px 20px 80px}
+  h1{font-size:26px;margin:0 0 6px}
+  h2{font-size:19px;margin:36px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  h3{font-size:15px;margin:20px 0 8px;color:var(--accent)}
+  .sub{color:var(--dim);font-size:14px;margin-bottom:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:14px 0}
+  .insight{background:linear-gradient(135deg,#1a2436,#161b22);border-left:3px solid var(--warn)}
+  .insight b{color:var(--warn)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .pill{background:var(--panel2);border:1px solid var(--line);color:var(--dim);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:14px;user-select:none}
+  .pill.active{background:var(--accent);border-color:var(--accent);color:#06121f;font-weight:600}
+  button.act{background:var(--accent);color:#06121f;border:none;border-radius:8px;padding:9px 18px;font-size:14px;font-weight:600;cursor:pointer}
+  button.act:hover{filter:brightness(1.08)}
+  button.ghost{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:9px 16px;font-size:14px;cursor:pointer}
+  button.ghost:hover{border-color:var(--accent)}
+  .slabel{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 2px}
+  .slabel b{font-size:14px} .slabel .v{font-variant-numeric:tabular-nums}
+  .age{font-size:22px;font-weight:700}
+  .age.loss{color:var(--warn)} .age.fix{color:var(--good)}
+  input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;background:var(--line);outline:none;margin:4px 0}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid #06121f}
+  #fixSlider::-webkit-slider-thumb{background:var(--good)}
+  #ageSlider::-webkit-slider-thumb{background:var(--warn)}
+  canvas{width:100%;display:block;border-radius:8px;background:#0a0e14;border:1px solid var(--line)}
+  .toggle{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--dim);cursor:pointer;user-select:none;background:var(--panel2);border:1px solid var(--line);padding:6px 12px;border-radius:8px}
+  .toggle input{width:15px;height:15px;accent-color:var(--accent)}
+  .note{font-size:12.5px;color:var(--dim);margin-top:8px}
+  .desc{font-size:13.5px;color:var(--dim);min-height:38px;margin:8px 0}
+  .kbd{font-family:ui-monospace,Menlo,monospace;background:#0a0e14;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px;color:var(--accent)}
+  .ladder{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+  .step{flex:0 0 auto;width:118px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px}
+  .step b{font-size:13px} .step .t{font-size:11px;color:var(--dim);min-height:30px;margin:4px 0}
+  .step audio{width:100%;height:30px}
+  .rstep{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:8px 0}
+  .rstep .h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .rstep b{font-size:14px} .rstep .t{font-size:12.5px;color:var(--dim)}
+  .rstep audio{width:100%;height:32px;margin-top:6px}
+  .bar{height:5px;border-radius:3px;background:var(--line);margin-top:6px;overflow:hidden}
+  .bar i{display:block;height:100%}
+  a{color:var(--accent)}
+  .foot{color:var(--dim);font-size:12px;margin-top:40px;text-align:center}
+  .warnbox{background:#2a1f14;border:1px solid #4a3318;color:#ffcf99;border-radius:8px;padding:10px 14px;font-size:13px;margin-top:10px;display:none}
+  .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:5px;margin-left:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>🔊 听见衰老</h1>
+  <div class="sub">老年性聋（presbycusis）听感 + 助听干预模拟器 · 同一段声音，听损与修复都无级可调</div>
+
+  <div class="card insight">
+    <b>⚠️ 这个 demo 是给「听力正常的人」用的。</b>
+    听力损失发生在<b>耳朵里</b>，不在音频文件里。这里是把"老年的耳朵会丢掉的东西"提前抠掉——正常人听"65 岁版"≈体验 65 岁听感。
+    但若让<b>真正 65 岁</b>的人 A/B：他听<b>原始版</b>，自己的耳朵已经丢一遍，<b>已经</b>是 65 岁听感；他听<b>65 岁版</b>，损失<b>叠加两次</b>，更闷更糊。
+    <span style="color:#fff">所以对当事人，两段并不一样。</span>下方实时模式里 <span class="kbd">叠加两次</span> 开关可直接演示。
+    <div class="note">修正：不是精确"×2"——本就低于听阈、听不见的频段再衰减也无差；衰减能靠音量补一些，但频率/时间分辨率退化（辅音糊成一团）靠调音量救不回来。</div>
+  </div>
+
+  <!-- ===== 实时模式 ===== -->
+  <h2>① 实时模式 · 听损 + 修复都无级可调</h2>
+  <div class="sub" style="margin-bottom:10px">物理顺序：<span class="kbd">声源 → 助听器(EQ补偿/压缩/降噪) → 衰老的耳朵(听损+频率模糊) → 你听到的</span>。两条滑块分别控制「耳朵多老」和「助听器补多少」。</div>
+
+  <div class="card">
+    <div class="row" style="margin-bottom:6px">
+      <span style="color:var(--dim);font-size:13px">声源：</span>
+      <span class="pill active" data-src="speech">有声书语音</span>
+      <span class="pill" data-src="music">音乐</span>
+      <span class="pill" data-src="upload">⬆ 上传音频</span>
+      <span class="pill" data-src="mic">🎤 麦克风</span>
+      <input type="file" id="fileInput" accept="audio/*" style="display:none">
+    </div>
+
+    <div class="slabel"><b style="color:var(--warn)">🦻 耳朵年龄（听损程度）</b><span class="v"><span class="age loss" id="ageVal">25</span> 岁 · <span id="ageLabel" style="color:var(--dim);font-size:13px">正常</span></span></div>
+    <input type="range" id="ageSlider" min="25" max="85" step="1" value="25">
+
+    <div class="slabel"><b style="color:var(--good)">🔧 助听器补偿强度</b><span class="v"><span class="age fix" id="fixVal">0</span> %</span></div>
+    <input type="range" id="fixSlider" min="0" max="100" step="5" value="0">
+
+    <div class="desc" id="stateDesc">高频完整，辅音清晰。年轻、健康耳蜗听到的样子。</div>
+
+    <canvas id="curve" width="860" height="210"></canvas>
+    <div class="note"><span style="color:var(--warn)">橙</span>=耳朵的听力损失(audiogram，真实参数)　<span style="color:var(--good)">绿</span>=助听器补偿后残余的净损失。绿色越贴近 0dB，说明补得越满。</div>
+
+    <div class="row" style="margin-top:14px;gap:14px">
+      <button class="act" id="playOrig">▶ 原始（正常听力）</button>
+      <button class="act" id="playAged" style="background:var(--warn);color:#06121f">▶ 听到的结果</button>
+      <button class="ghost" id="stopBtn">■ 停止</button>
+    </div>
+
+    <div class="row" style="margin-top:14px">
+      <label class="toggle"><input type="checkbox" id="tgWdrc"> WDRC 压缩<span style="color:#667">抬升弱辅音</span></label>
+      <label class="toggle"><input type="checkbox" id="tgCafe"> 餐厅嘈杂背景</label>
+      <label class="toggle"><input type="checkbox" id="tgNr"> 降噪<span style="color:#667">(配合餐厅)</span></label>
+      <label class="toggle"><input type="checkbox" id="tgSmear"> 频率/时间分辨率模糊</label>
+      <label class="toggle"><input type="checkbox" id="tgDouble"> <span style="color:var(--warn)">叠加两次（本人就是这年龄）</span></label>
+    </div>
+    <div class="note">提示：把补偿拉到 100% 听损几乎被抵消；但只要开<b>频率模糊</b>，再满的 EQ 也救不回清晰度——这正是软件 EQ 护城河浅的地方。</div>
+    <div class="warnbox" id="loadWarn">⚠️ 内置声源需经服务器加载（你可能在用 <span class="kbd">file://</span> 直接打开）。请用下方预渲染播放器，或部署后再用实时模式；上传/麦克风本地可用。</div>
+  </div>
+
+  <!-- ===== 年龄阶梯 ===== -->
+  <h2>② 年龄阶梯 · 精确预渲染</h2>
+  <div class="sub">处理脚本跑出的 ground truth，按年龄从左到右逐级加重。戴耳机依次听。</div>
+
+  <div class="card">
+    <h3>🎧 有声书语音（《夏日午后》爷孙对话）</h3>
+    <div class="ladder" id="speechLadder"></div>
+    <h3 style="margin-top:18px">🎵 音乐<span class="tag" style="background:#3a2a14;color:#ffcf99">占位 · 待换经典老歌</span></h3>
+    <div class="ladder" id="musicLadder"></div>
+    <div class="note">音乐目前是占位素材。给我一个经典老歌的音频文件放进 <span class="kbd">hearing-demo/</span>，重跑 <span class="kbd">build_web_assets.py</span> 即可无缝替换。</div>
+  </div>
+
+  <!-- ===== 修复阶梯 ===== -->
+  <h2>③ 修复阶梯 · 戴上助听器之后</h2>
+  <div class="sub">场景固定为 <b>65 岁中度听损 + 餐厅嘈杂背景</b>，逐级叠加干预手段，听清晰度怎么一步步被救回来。</div>
+  <div class="card" id="restoreWrap"></div>
+
+  <!-- ===== 原理 ===== -->
+  <h2>④ 这套模拟基于什么</h2>
+  <div class="card" style="font-size:14px">
+    <b>真实听力图参数（dB 损失）</b>，源自 <span class="kbd">process.py / build_web_assets.py</span>：
+    <ul style="color:var(--dim);margin:8px 0">
+      <li><b>50 岁</b>：1k=5 · 2k=10 · 3k=15 · 4k=22 · 6k=32 · 8k=42</li>
+      <li><b>65 岁</b>：0.5k=5 · 1k=10 · 2k=20 · 3k=32 · 4k=45 · 6k=55 · 8k=65</li>
+      <li><b>75 岁</b>：0.5k=15 · 1k=25 · 2k=38 · 3k=50 · 4k=60 · 6k=70 · 8k=75</li>
+    </ul>
+    中间年龄按锚点线性插值（实时滑块同一套）。三个退化维度：<b>高频损失</b>（蝉鸣/鸟叫/辅音 s·f·sh 先没）、<b>嘈杂中分辨人声崩溃</b>（cocktail party 失败）、<b>耳蜗调谐变宽→频率分辨率下降</b>（辅音糊成一团，主观觉得"别人说话变快了"）。
+    修复侧：<b>EQ补偿</b>（按听力图反向增益，但会同时放大噪声）→ <b>WDRC</b>（宽动态压缩，抬升弱辅音）→ <b>降噪</b>（定向麦/NR 压低环境声）。
+  </div>
+
+  <div class="foot">hearing-demo · 老年性聋听感 & 修复模拟 · 仅作共情/科普，非医疗诊断工具</div>
+</div>
+
+<script>
+//==================== 听力图（与 build_web_assets.py 同一套）====================
+const FREQS=[250,500,1000,2000,3000,4000,6000,8000,12000,16000];
+const ANCHORS={25:[0,0,0,0,0,0,0,0,0,0],50:[0,0,5,10,15,22,32,42,55,60],65:[0,5,10,20,32,45,55,65,70,72],75:[5,15,25,38,50,60,70,75,78,80]};
+const AAGES=[25,50,65,75];
+function lossForAge(age){
+  if(age<=25) return ANCHORS[25].slice();
+  if(age>=75){const b=ANCHORS[75],s=b.map((v,i)=>(v-ANCHORS[65][i])/10);return b.map((v,i)=>Math.min(85,v+s[i]*(age-75)));}
+  let a0,a1;for(let i=0;i<AAGES.length-1;i++){if(age>=AAGES[i]&&age<=AAGES[i+1]){a0=AAGES[i];a1=AAGES[i+1];break;}}
+  const t=(age-a0)/(a1-a0);return ANCHORS[a0].map((v,i)=>v+(ANCHORS[a1][i]-v)*t);
+}
+function ageLabel(a){return a<40?"正常":a<55?"早期高频损失":a<70?"中度老年性聋":"明显听损";}
+function stateText(age,fix){
+  const base=age<40?"高频完整，辅音清晰。年轻、健康耳蜗听到的样子。":age<55?"高频开始变闷，s/f 齿擦音先变弱。安静时还能听清。":age<70?"辅音明显含糊，'四'和'十'、'西红柿'尾音分不清。一吵就崩。":"像隔着一层棉被，很多字靠猜，电视要开很大声。";
+  if(fix>=15&&age>=40){return base+`　🔧 助听器补 ${fix}%：高频被拉回来，`+(fix>=85?"听损几乎被抵消":"听感改善")+"（但分辨率模糊救不回）。";}
+  return base;
+}
+
+//==================== 曲线 ====================
+const cv=document.getElementById('curve'),ctx=cv.getContext('2d');
+function drawCurve(age,fix){
+  const W=cv.width,H=cv.height,x0=46,x1=W-16,y0=14,y1=H-28;
+  ctx.clearRect(0,0,W,H);
+  const fmin=Math.log10(125),fmax=Math.log10(16000);
+  const fx=f=>x0+(Math.log10(f)-fmin)/(fmax-fmin)*(x1-x0), ly=l=>y0+(l/85)*(y1-y0);
+  ctx.font="11px sans-serif";ctx.lineWidth=1;
+  [0,20,40,60,80].forEach(l=>{const y=ly(l);ctx.strokeStyle="#1c2330";ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1,y);ctx.stroke();ctx.fillStyle="#5a6573";ctx.fillText(l+"dB",4,y+4);});
+  [250,500,1000,2000,4000,8000,16000].forEach(f=>{const x=fx(f);ctx.strokeStyle="#141a24";ctx.beginPath();ctx.moveTo(x,y0);ctx.lineTo(x,y1);ctx.stroke();ctx.fillStyle="#5a6573";ctx.textAlign="center";ctx.fillText(f>=1000?(f/1000)+"k":f,x,y1+18);ctx.textAlign="left";});
+  const loss=lossForAge(age);
+  // 净残余 = loss*(1-fix/100)
+  const net=loss.map(v=>v*(1-fix/100));
+  function plot(arr,color,fill){ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.beginPath();FREQS.forEach((f,i)=>{const x=fx(f),y=ly(arr[i]);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();if(fill){ctx.lineTo(fx(FREQS[FREQS.length-1]),y0);ctx.lineTo(fx(FREQS[0]),y0);ctx.closePath();ctx.fillStyle=fill;ctx.fill();}ctx.fillStyle=color;FREQS.forEach((f,i)=>{ctx.beginPath();ctx.arc(fx(f),ly(arr[i]),3,0,7);ctx.fill();});}
+  plot(loss,"#ffb454","rgba(255,180,84,0.07)");
+  if(fix>0) plot(net,"#3fb950",null);
+}
+
+//==================== Web Audio 引擎 ====================
+let actx=null,current=null,micStream=null,noiseBuf=null,smearIR=null,activeNodes=[];
+const SRC={speech:"web/src_speech.mp3",music:"web/src_music.mp3"};
+let srcMode="speech",builtinCache={};
+function ensureCtx(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();return actx;}
+function eqChain(ctx,age,sign,scale){ // sign:-1 耳朵衰减 / +1 助听器提升; scale 0..1
+  const loss=lossForAge(age),nodes=[];
+  FREQS.forEach((f,i)=>{if(f>ctx.sampleRate/2)return;const b=ctx.createBiquadFilter();b.type="peaking";b.frequency.value=f;b.Q.value=1.2;b.gain.value=sign*loss[i]*scale;nodes.push(b);});
+  for(let i=0;i<nodes.length-1;i++)nodes[i].connect(nodes[i+1]);
+  return {input:nodes[0],output:nodes[nodes.length-1]};
+}
+function makeNoise(){const ctx=ensureCtx(),len=ctx.sampleRate*4,b=ctx.createBuffer(1,len,ctx.sampleRate),d=b.getChannelData(0);let b0=0,b1=0,b2=0;for(let i=0;i<len;i++){const w=Math.random()*2-1;b0=0.99*b0+w*0.05;b1=0.96*b1+w*0.08;b2=0.90*b2+w*0.12;d[i]=(b0+b1+b2+w*0.05)*0.4;}return b;}
+function makeSmearIR(){const ctx=ensureCtx(),len=Math.floor(ctx.sampleRate*0.045),b=ctx.createBuffer(1,len,ctx.sampleRate),d=b.getChannelData(0);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.2);return b;}
+
+async function loadBuiltin(key){const ctx=ensureCtx();if(builtinCache[key]){current=builtinCache[key];return true;}try{const r=await fetch(SRC[key]);const ab=await r.arrayBuffer();builtinCache[key]=await ctx.decodeAudioData(ab);current=builtinCache[key];document.getElementById('loadWarn').style.display='none';return true;}catch(e){document.getElementById('loadWarn').style.display='block';return false;}}
+function stopAll(){activeNodes.forEach(n=>{try{n.stop();}catch(e){}});activeNodes=[];}
+
+function playResult(aged){
+  if(!current)return;const ctx=ensureCtx();if(ctx.state==='suspended')ctx.resume();stopAll();
+  const age=+ageSlider.value,fix=+fixSlider.value;
+  const src=ctx.createBufferSource();src.buffer=current;activeNodes.push(src);
+  if(!aged){src.connect(ctx.destination);src.start();return;}
+  // 汇流点（助听器输出 → 耳朵输入）
+  const sum=ctx.createGain();
+  // 语音经过助听器：EQ补偿 + WDRC
+  let aidIn=src;
+  if(fix>0){const boost=eqChain(ctx,age,+1,fix/100);aidIn.connect(boost.input);aidIn=boost.output;}
+  if(tgWdrc.checked){const comp=ctx.createDynamicsCompressor();comp.threshold.value=-34;comp.ratio.value=3;comp.attack.value=0.005;comp.release.value=0.06;aidIn.connect(comp);aidIn=comp;}
+  aidIn.connect(sum);
+  // 餐厅噪声也进话筒：同样被 EQ 提升；降噪压低
+  if(tgCafe.checked){
+    if(!noiseBuf)noiseBuf=makeNoise();
+    const ns=ctx.createBufferSource();ns.buffer=noiseBuf;ns.loop=true;activeNodes.push(ns);
+    let n=ns;if(fix>0){const nb=eqChain(ctx,age,+1,fix/100);n.connect(nb.input);n=nb.output;}
+    const ng=ctx.createGain();ng.gain.value=(tgNr.checked?0.06:0.20);n.connect(ng);ng.connect(sum);ns.start();
+  }
+  // 耳朵：听损（可叠加两次）+ 频率模糊
+  let ear=eqChain(ctx,age,-1,1);sum.connect(ear.input);let node=ear.output;
+  if(tgDouble.checked){const e2=eqChain(ctx,age,-1,1);node.connect(e2.input);node=e2.output;}
+  if(tgSmear.checked){if(!smearIR)smearIR=makeSmearIR();const conv=ctx.createConvolver();conv.buffer=smearIR;const wet=ctx.createGain();wet.gain.value=0.5;const dry=ctx.createGain();dry.gain.value=0.7;node.connect(dry);node.connect(conv);conv.connect(wet);const mix=ctx.createGain();dry.connect(mix);wet.connect(mix);node=mix;}
+  node.connect(ctx.destination);src.start();
+}
+async function playMic(aged){const ctx=ensureCtx();if(ctx.state==='suspended')ctx.resume();stopAll();if(!micStream){try{micStream=await navigator.mediaDevices.getUserMedia({audio:true});}catch(e){alert('无法访问麦克风');return;}}const s=ctx.createMediaStreamSource(micStream);const age=+ageSlider.value,fix=+fixSlider.value;let node=s;if(aged){if(fix>0){const b=eqChain(ctx,age,+1,fix/100);node.connect(b.input);node=b.output;}let ear=eqChain(ctx,age,-1,1);node.connect(ear.input);node=ear.output;if(tgDouble.checked){const e2=eqChain(ctx,age,-1,1);node.connect(e2.input);node=e2.output;}}node.connect(ctx.destination);}
+
+//==================== UI ====================
+const ageSlider=document.getElementById('ageSlider'),fixSlider=document.getElementById('fixSlider');
+const tgWdrc=document.getElementById('tgWdrc'),tgCafe=document.getElementById('tgCafe'),tgNr=document.getElementById('tgNr'),tgSmear=document.getElementById('tgSmear'),tgDouble=document.getElementById('tgDouble');
+function refresh(){const a=+ageSlider.value,f=+fixSlider.value;document.getElementById('ageVal').textContent=a;document.getElementById('fixVal').textContent=f;document.getElementById('ageLabel').textContent=ageLabel(a);document.getElementById('stateDesc').textContent=stateText(a,f);drawCurve(a,f);}
+ageSlider.addEventListener('input',refresh);fixSlider.addEventListener('input',refresh);
+document.querySelectorAll('.pill[data-src]').forEach(p=>p.addEventListener('click',async()=>{document.querySelectorAll('.pill[data-src]').forEach(x=>x.classList.remove('active'));p.classList.add('active');srcMode=p.dataset.src;if(srcMode==='upload')document.getElementById('fileInput').click();else if(srcMode==='mic')ensureCtx();else await loadBuiltin(srcMode);}));
+document.getElementById('fileInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const ctx=ensureCtx();const rd=new FileReader();rd.onload=async()=>{try{current=await ctx.decodeAudioData(rd.result);document.getElementById('loadWarn').style.display='none';}catch(err){alert('无法解码该音频');}};rd.readAsArrayBuffer(f);});
+document.getElementById('playOrig').addEventListener('click',()=>srcMode==='mic'?playMic(false):playResult(false));
+document.getElementById('playAged').addEventListener('click',()=>srcMode==='mic'?playMic(true):playResult(true));
+document.getElementById('stopBtn').addEventListener('click',()=>{stopAll();if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}});
+
+//==================== 年龄阶梯 / 修复阶梯 ====================
+const SPEECH_AGES=[[25,"正常听力","年轻耳朵"],[40,"40 岁","几乎无感"],[50,"50 岁","高频微闷"],[55,"55 岁","齿擦音变弱"],[60,"60 岁","辅音渐糊"],[65,"65 岁","明显含糊"],[70,"70 岁","要靠猜"],[75,"75 岁","隔层棉被"],[80,"80 岁","大量缺失"],[85,"85 岁","仅余轮廓"]];
+const MUSIC_AGES=[[25,"正常听力","完整泛音"],[45,"45 岁","泛音变暗"],[55,"55 岁","明亮度降"],[65,"65 岁","空气感失"],[75,"75 岁","闷"],[85,"85 岁","只剩低频"]];
+function fillLadder(el,arr,prefix){el.innerHTML='';arr.forEach(([age,t,d])=>{const s=document.createElement('div');s.className='step';s.innerHTML=`<b>${t}</b><div class="t">${d}</div><audio controls preload="none" src="web/${prefix}_age_${age}.mp3"></audio>`;el.appendChild(s);});}
+fillLadder(document.getElementById('speechLadder'),SPEECH_AGES,'speech');
+fillLadder(document.getElementById('musicLadder'),MUSIC_AGES,'music');
+
+const RESTORE=[
+  ["restore_0_none.mp3","损失原样","65 岁中度听损 + 餐厅嘈杂，没有任何干预——基本听不清","#ff6b6b",15],
+  ["restore_1_eq.mp3","+ EQ 补偿","助听器按听力图反向增益补回高频。变亮了，但<b>噪声也被一起放大</b>","#ffb454",45],
+  ["restore_2_eq_wdrc.mp3","+ WDRC 压缩","再加宽动态压缩，抬升微弱辅音，字与字更分得开","#e3c000",70],
+  ["restore_3_eq_wdrc_nr.mp3","+ 降噪","定向麦/NR 压低环境噪声 ~10dB（现代助听器组合拳）","#3fb950",90],
+  ["restore_ref.mp3","参考 · 正常听力","年轻耳朵听干净语音 — 对照天花板","#4ea1ff",100],
+];
+const rw=document.getElementById('restoreWrap');
+RESTORE.forEach(([file,name,t,c,pct])=>{const d=document.createElement('div');d.className='rstep';d.innerHTML=`<div class="h"><b>${name}</b><span style="color:${c};font-size:12px">清晰度 ${pct}%</span></div><div class="t">${t}</div><div class="bar"><i style="width:${pct}%;background:${c}"></i></div><audio controls preload="none" src="web/${file}"></audio>`;rw.appendChild(d);});
+
+//==================== init ====================
+refresh();loadBuiltin('speech');
+</script>
+</body>
+</html>
